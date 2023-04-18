@@ -25,7 +25,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/auth", (req, res) => {
-  const q = "select username, privilege from accounts where username = ? and password = ?"
+  const q = "select username, privilege from accounts where username = ? and password = ?";
   console.log(req.query.username);
   console.log(req.query.password);
   db.query(q, [req.query.username, req.query.password],(err, data) => {
@@ -34,7 +34,7 @@ app.get("/auth", (req, res) => {
       return res.json(err);
     }
     console.log(data.length);
-    if (data.length == 0){
+    if (data.length === 0){
       //no account found
       return res.json("nothing");
     } else {
@@ -88,6 +88,32 @@ app.get("/checkuserdocs/:username", (req, res) => {
     console.log(data);
     return res.json(data);
   });
+});
+app.get("/checkadmindocs/:status?/:user?", (req, res) => {
+  if (!req.params.status){
+    req.params.status = 'Pending';
+  }
+  if (!req.params.user){
+    const q = "SELECT * FROM Forms WHERE Status = ?";
+    db.query(q, [req.params.status],(err, data) => {
+      if (err) {
+        console.log(err);
+        return res.json(err);
+      }
+      console.log(data);
+      return res.json(data);
+    });
+  } else {
+    const q = "SELECT * FROM Forms WHERE Status = ? AND username = ?;";
+    db.query(q, [req.params.status, req.params.user],(err, data) => {
+      if (err) {
+        console.log(err);
+        return res.json(err);
+      }
+      console.log(data);
+      return res.json(data);
+    });
+  }
 });
 
 app.get("/viewuserdocs/:username/:id/:type", (req, res) => {
