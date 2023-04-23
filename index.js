@@ -46,6 +46,38 @@ app.get("/auth", (req, res) => {
   });
 });
 
+app.get("/officials", (req, res) => {
+  const q = "SELECT * FROM Officials";
+  db.query(q, (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.json(err);
+    }
+    return res.json(data);
+  });
+});
+
+app.post("/updateofficials", (req, res) => {
+  let q = "UPDATE Officials SET `Punong`=?, `Livelihood`=?, `Finance`=?, `Health`=?, `Environmental`=?, `Infrastructure`=?, `Peace`=?, `Education`=?, `Youth`=?, `Treasurer`=?, `Secretary`=? WHERE `OfficialID`=1";
+  db.query(q,
+   [req.body.Punong,
+    req.body.Livelihood,
+    req.body.Finance,
+    req.body.Health,
+    req.body.Environmental,
+    req.body.Infrastructure,
+    req.body.Peace,
+    req.body.Education,
+    req.body.Youth,
+    req.body.Treasurer,
+    req.body.Secretary], (err, data) => {
+    if (err) {
+      console.log(err);
+      return res.send(err);
+    }
+  });
+});
+
 app.get("/books", (req, res) => {
   const q = "SELECT * FROM books";
   db.query(q, (err, data) => {
