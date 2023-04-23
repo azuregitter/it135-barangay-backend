@@ -10,10 +10,12 @@ app.use(express.json());
   host: "localhost",
   user: "root",
   password: "qwerty",
-  database: "barangay",
+  database: "barangayaguho_24",
 });*/
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
+  connectionLimit : 10,
+  acquireTimeout  : 10000,
   host: "db4free.net",
   user: "barangayaguho_28",
   password: "barangayaguho_30",
@@ -100,17 +102,18 @@ app.get("/checkadmindocs/:status?/:user?", (req, res) => {
         console.log(err);
         return res.json(err);
       }
-      console.log(data);
+      //console.log(data);
       return res.json(data);
     });
   } else {
-    const q = "SELECT * FROM Forms WHERE Status = ? AND username = ?;";
-    db.query(q, [req.params.status, req.params.user],(err, data) => {
+      req.params.user = req.params.user + '%';
+    const q = "SELECT * FROM Forms WHERE Status = ? AND (username like ? or fullname like ?)";
+    db.query(q, [req.params.status, req.params.user, req.params.user],(err, data) => {
       if (err) {
         console.log(err);
         return res.json(err);
       }
-      console.log(data);
+      //console.log(data);
       return res.json(data);
     });
   }
@@ -264,6 +267,15 @@ app.delete("/books/:id", (req, res) => {
   const q = " DELETE FROM books WHERE id = ? ";
 
   db.query(q, [bookId], (err, data) => {
+    if (err) return res.send(err);
+    return res.json(data);
+  });
+});
+
+app.put("/docstatus/:id/:status", (req, res) => {
+  const q = "UPDATE Forms set Status = ? where FormID = ?";
+
+  db.query(q, [req.params.status,req.params.id], (err, data) => {
     if (err) return res.send(err);
     return res.json(data);
   });
