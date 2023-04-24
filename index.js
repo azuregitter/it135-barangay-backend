@@ -83,6 +83,18 @@ app.get("/officials", (req, res) => {
   });
 });
 
+app.post("/updatepunongimg", (req, res) => {
+  console.log(req.body.img)
+  let q = "UPDATE Officials set `PunongIMG`= ? where OfficialID = 1;";
+  db.query(q,
+      [req.body.img], (err, data) => {
+        if (err) {
+          console.log(err);
+          return res.send(err);
+        }
+      });
+});
+
 app.post("/updateofficials", (req, res) => {
   let q = "UPDATE Officials SET `Punong`=?, `Livelihood`=?, `Finance`=?, `Health`=?, `Environmental`=?, `Infrastructure`=?, `Peace`=?, `Education`=?, `Youth`=?, `Treasurer`=?, `Secretary`=? WHERE `OfficialID`=1";
   db.query(q,
