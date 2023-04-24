@@ -22,8 +22,34 @@ const db = mysql.createPool({
   database: "barangayaguho_24",
 });
 
+/*const db = mysql.createConnection({
+  host: "db4free.net",
+  user: "barangayaguho_28",
+  password: "barangayaguho_30",
+  database: "barangayaguho_24",
+});*/
+
 app.get("/", (req, res) => {
   res.json(db);
+});
+app.get("/delet", (req, res) => {
+  const q = "select username, privilege from accounts where username = ? and password = ?";
+  console.log(req.query.username);
+  console.log(req.query.password);
+  db.query(q, [req.query.username, req.query.password],(err, data) => {
+    if (err) {
+      console.log(err);
+      return res.json(err);
+    }
+    console.log(data.length);
+    if (data.length === 0){
+      //no account found
+      return res.json("nothing");
+    } else {
+      //yes account found
+      return res.json(data);
+    }
+  });
 });
 
 app.get("/auth", (req, res) => {
@@ -173,60 +199,84 @@ app.get("/viewuserdocs/:username/:id/:type", (req, res) => {
 });
 
 app.post("/submitresident", (req, res) => {
-  let q = "BEGIN";
-  console.log('begin residence');
-  db.query(q);
-  q = "INSERT INTO Forms (`FormType`, `username`,`fullname`,`AppDate`,`Status`) VALUES(?)";
-  let values = [
-    req.body.FormType,
-    req.body.username,
-    req.body.fullname,
-    req.body.AppDate,
-    req.body.Status,
-  ];
-  db.query(q, [values], (err, data) => {
-    if (err) return res.send(err);
+  db.getConnection(function (err, conn) {
+    if (err) return console.log(err);
+    let q = "BEGIN";
+    console.log('begin residence');
+    conn.query(q, function (err, rows) {
+      if (err) throw err;
+      q = "INSERT INTO Forms (`FormType`, `username`,`fullname`,`AppDate`,`Status`) VALUES(?)";
+      let id;
+      let values = [
+        req.body.FormType,
+        req.body.username,
+        req.body.fullname,
+        req.body.AppDate,
+        req.body.Status,
+      ];
+      console.log(values);
+      conn.query(q, [values], function (err, data) {
+        if (err) throw err;
+        id = data.insertId;
+        values = [
+          req.body.fullname,
+          req.body.Address,
+        ];
+        q = "INSERT INTO Residence (ResidenceID, Name, Address) VALUES(?,?)";
+        console.log(values);
+        conn.query(q, [id,values], function (err, data) {
+          if (err) throw err;
+          q = 'Commit';
+          console.log('commit residence');
+          conn.query(q, function (err, data) {
+            if (err) throw err;
+            conn.release();
+          });
+        });
+      });
+    });
   });
-  values = [
-    req.body.fullname,
-    req.body.Address,
-  ];
-  q = "INSERT INTO Residence (ResidenceID, Name, Address) VALUES(LAST_INSERT_ID(),?)";
-  db.query(q, [values], (err, data) => {
-    if (err) return res.send(err);
-  });
-  console.log('commit residence');
-  q = "Commit";
-  db.query(q);
 });
 
 app.post("/submitindigent", (req, res) => {
-  let q = "BEGIN";
-  console.log('begin indigent');
-  db.query(q);
-  q = "INSERT INTO Forms (`FormType`, `username`,`fullname`,`AppDate`,`Status`) VALUES(?)";
-  let values = [
-    req.body.FormType,
-    req.body.username,
-    req.body.fullname,
-    req.body.AppDate,
-    req.body.Status,
-  ];
-  db.query(q, [values], (err, data) => {
-    if (err) return res.send(err);
+  db.getConnection(function (err, conn) {
+    if (err) return console.log(err);
+    let q = "BEGIN";
+    console.log('begin indigent');
+    conn.query(q, function (err, rows) {
+      if (err) throw err;
+      q = "INSERT INTO Forms (`FormType`, `username`,`fullname`,`AppDate`,`Status`) VALUES(?)";
+      let id;
+      let values = [
+        req.body.FormType,
+        req.body.username,
+        req.body.fullname,
+        req.body.AppDate,
+        req.body.Status,
+      ];
+      console.log(values);
+      conn.query(q, [values], function (err, data) {
+        if (err) throw err;
+        id = data.insertId;
+        values = [
+          req.body.fullname,
+          req.body.Address,
+          req.body.RName,
+        ];
+        q = "INSERT INTO Indigent (IndigentID, PName, PAddress, RName) VALUES(?,?)";
+        console.log(values);
+        conn.query(q, [id,values], function (err, data) {
+          if (err) throw err;
+          q = 'Commit';
+          console.log('commit indigent');
+          conn.query(q, function (err, data) {
+            if (err) throw err;
+            conn.release();
+          });
+        });
+      });
+    });
   });
-  values = [
-    req.body.fullname,
-    req.body.Address,
-    req.body.RName,
-  ];
-  q = "INSERT INTO Indigent (IndigentID, PName, PAddress, RName) VALUES(LAST_INSERT_ID(),?)";
-  db.query(q, [values], (err, data) => {
-    if (err) return res.send(err);
-  });
-  q = "Commit";
-  console.log('commit indigent');
-  db.query(q);
 });
 
 
