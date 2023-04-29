@@ -149,6 +149,18 @@ app.get("/checkuser/:username", (req, res) => {
     return res.json(data);
   });
 });
+app.get("/checkuseredit/:username", (req, res) => {
+  const q = "select firstname, middlename, lastname, sex, dateofbirth, civilstatus, phonenumber, address from accounts where username= ?";
+  console.log("edit profile : " + req.params.username);
+  db.query(q, [req.params.username],(err, data) => {
+    if (err) {
+      console.log(err);
+      return res.json(err);
+    }
+    console.log(data);
+    return res.json(data);
+  });
+});
 app.get("/checkuserdocs/:username", (req, res) => {
   const q = "SELECT * FROM Forms WHERE username = ?";
   console.log("look at it: " + req.params.username);
@@ -189,6 +201,49 @@ app.get("/checkadmindocs/:status?/:user?", (req, res) => {
   }
 });
 
+app.get("/checkaccounts/:user?", (req, res) => {
+  if (!req.params.user){
+    const q = "SELECT userid, firstname, middlename, lastname, username, privilege FROM accounts WHERE username != 'mainadmin'";
+    db.query(q, (err, data) => {
+      if (err) {
+        console.log(err);
+        return res.json(err);
+      }
+      console.log(data);
+      return res.json(data);
+    });
+  } else {
+    req.params.user = req.params.user + '%';
+    const q = "SELECT userid, firstname, middlename, lastname, username, privilege FROM accounts WHERE username != 'mainadmin' AND (username like ? or firstname like ? or middlename like ? or lastname like ?)";
+    db.query(q, [req.params.user, req.params.user, req.params.user, req.params.user],(err, data) => {
+      if (err) {
+        console.log(err);
+        return res.json(err);
+      }
+      //console.log(data);
+      return res.json(data);
+    });
+  }
+});
+
+app.put("/updateadmin/:username/:privilege", (req, res) => {
+  const q = "UPDATE accounts SET `privilege`= ? WHERE username = ?";
+  db.query(q, [req.params.privilege,req.params.username], (err, data) => {
+    if (err) return res.send(err);
+    return res.json(data);
+  });
+});
+
+app.post("/editaccount/:username", (req, res) => {
+  console.log(req.body);
+  console.log(req.params.username);
+  const q = "UPDATE accounts SET firstname = ?, middlename = ?, lastname = ?, civilstatus = ?, phonenumber = ?, address = ?  WHERE username = ?";
+  db.query(q, [req.body.firstname, req.body.middlename, req.body.lastname, req.body.civilstatus, req.body.phonenumber, req.body.address ,req.params.username], (err, data) => {
+    if (err) return res.send(err);
+    return res.json(data);
+  });
+});
+
 app.get("/viewuserdocs/:username/:id/:type", (req, res) => {
   let values = [
     req.params.username,
@@ -199,6 +254,12 @@ app.get("/viewuserdocs/:username/:id/:type", (req, res) => {
     q = "select * from Forms INNER JOIN Residence on Forms.FormID = Residence.ResidenceID WHERE username = ? and FormID = ?";
   }else if (req.params.type === 'Indigence Certification'){
     q = "select * from Forms INNER JOIN Indigent on Forms.FormID = Indigent.IndigentID WHERE username = ? and FormID = ?";
+  }else if (req.params.type === 'Business Clearance'){
+    q = "select * from Forms INNER JOIN Business on Forms.FormID = Business.BusinessID WHERE username = ? and FormID = ?";
+  }else if (req.params.type === 'Working Permit Clearance'){
+    q = "select * from Forms INNER JOIN Working on Forms.FormID = Working.WorkingID WHERE username = ? and FormID = ?";
+  }else if (req.params.type === 'Barangay ID'){
+    q = "select * from Forms INNER JOIN BarangayID on Forms.FormID = BarangayID.BarangayID WHERE username = ? and FormID = ?";
   }
   db.query(q, [req.params.username, req.params.id],(err, data) => {
     if (err) {
@@ -291,6 +352,137 @@ app.post("/submitindigent", (req, res) => {
   });
 });
 
+app.post("/submitbusiness", (req, res) => {
+  db.getConnection(function (err, conn) {
+    if (err) return console.log(err);
+    let q = "BEGIN";
+    console.log('begin business');
+    conn.query(q, function (err, rows) {
+      if (err) throw err;
+      q = "INSERT INTO Forms (`FormType`, `username`,`fullname`,`AppDate`,`Status`) VALUES(?)";
+      let id;
+      let values = [
+        req.body.FormType,
+        req.body.username,
+        req.body.BWname,
+        req.body.AppDate,
+        req.body.Status,
+      ];
+      console.log(values);
+      conn.query(q, [values], function (err, data) {
+        if (err) throw err;
+        id = data.insertId;
+        values = [
+          req.body.BWname,
+          req.body.BWaddress,
+          req.body.Oname,
+          req.body.Oaddress,
+        ];
+        q = "INSERT INTO Business (BusinessID, BName, BAddress, OName, OAddress) VALUES(?,?)";
+        console.log(values);
+        conn.query(q, [id,values], function (err, data) {
+          if (err) throw err;
+          q = 'Commit';
+          console.log('commit business');
+          conn.query(q, function (err, data) {
+            if (err) throw err;
+            conn.release();
+          });
+        });
+      });
+    });
+  });
+});
+
+app.post("/submitworking", (req, res) => {
+  db.getConnection(function (err, conn) {
+    if (err) return console.log(err);
+    let q = "BEGIN";
+    console.log('begin working');
+    conn.query(q, function (err, rows) {
+      if (err) throw err;
+      q = "INSERT INTO Forms (`FormType`, `username`,`fullname`,`AppDate`,`Status`) VALUES(?)";
+      let id;
+      let values = [
+        req.body.FormType,
+        req.body.username,
+        req.body.BWname,
+        req.body.AppDate,
+        req.body.Status,
+      ];
+      console.log(values);
+      conn.query(q, [values], function (err, data) {
+        if (err) throw err;
+        id = data.insertId;
+        values = [
+          req.body.BWname,
+          req.body.BWaddress,
+          req.body.Oname,
+          req.body.Oaddress,
+        ];
+        q = "INSERT INTO Working (WorkingID, WName, WAddress, OName, OAddress) VALUES(?,?)";
+        console.log(values);
+        conn.query(q, [id,values], function (err, data) {
+          if (err) throw err;
+          q = 'Commit';
+          console.log('commit working');
+          conn.query(q, function (err, data) {
+            if (err) throw err;
+            conn.release();
+          });
+        });
+      });
+    });
+  });
+});
+
+app.post("/submitbid/", (req, res) => {
+  db.getConnection(function (err, conn) {
+    if (err) return console.log(err);
+    let q = "BEGIN";
+    console.log('begin barangay id');
+    conn.query(q, function (err, rows) {
+      if (err) throw err;
+      q = "INSERT INTO Forms (`FormType`, `username`,`fullname`,`AppDate`,`Status`) VALUES(?)";
+      let id;
+      let values = [
+        req.body.Submission.FormType,
+        req.body.Submission.username,
+        req.body.Submission.idname,
+        req.body.Submission.AppDate,
+        req.body.Submission.Status,
+      ];
+      console.log(values);
+      conn.query(q, [values], function (err, data) {
+        if (err) throw err;
+        id = data.insertId;
+        values = [
+          req.body.Submission.idname,
+          req.body.Submission.address,
+          req.body.Submission.birthdate,
+          req.body.Submission.bloodtype,
+          req.body.Submission.weight,
+          req.body.Submission.height,
+          req.body.Bimg,
+          req.body.Submission.emergencyname,
+          req.body.Submission.emergencyaddress,
+          req.body.Submission.emergencynumber,
+        ];
+        q = "INSERT INTO BarangayID (BarangayID, Name, Address, Birthdate, `Blood Type`, Weight, Height, IDimg, CName, CAddress, ContactNo) VALUES(?,?)";
+        console.log(values);
+        conn.query(q, [id,values], function (err, data) {
+          if (err) throw err;
+          q = 'Commit';
+          console.log('commit barangay id');
+          conn.query(q, function (err, data) {
+            if (err) throw err;
+            conn.release();
+          });
+        });
+      });
+    });
+  });
+});
 
 app.post("/accounts", (req, res) => {
   const q = "INSERT INTO accounts(`firstname`, `middlename`, `lastname`, `sex`,`dateofbirth`, `civilstatus`, `phonenumber`, `email`, `address`, `username`, `password`, `privilege`) VALUES (?)";
