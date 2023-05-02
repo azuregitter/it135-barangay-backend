@@ -533,6 +533,15 @@ app.delete("/deletedocs/:id/:type", (req, res) => {
   }else if (req.params.type === 'Indigence Certification'){
     q = " DELETE FROM Indigent WHERE IndigentID = ? ";
     console.log(q);
+  }else if (req.params.type === 'Business Clearance'){
+    q = " DELETE FROM Business WHERE BusinessID = ? ";
+    console.log(q);
+  }else if (req.params.type === 'Working Permit Clearance'){
+    q = " DELETE FROM Working WHERE WorkingID = ? ";
+    console.log(q);
+  }else if (req.params.type === 'Barangay ID'){
+    q = " DELETE FROM BarangayID WHERE BarangayID = ? ";
+    console.log(q);
   }
 
   db.query(q, [value], (err, data) => {
