@@ -6,13 +6,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-/*const db = mysql.createConnection({
-  host: "localhost",
-  user: "root",
-  password: "qwerty",
-  database: "barangayaguho_24",
-});*/
-
 const db = mysql.createPool({
   connectionLimit : 10,
   acquireTimeout  : 10000,
@@ -22,10 +15,12 @@ const db = mysql.createPool({
   database: "barangayaguho_24",
 });
 
-/*const db = mysql.createConnection({
-  host: "db4free.net",
-  user: "barangayaguho_28",
-  password: "barangayaguho_30",
+/*const db = mysql.createPool({
+  connectionLimit : 10,
+  acquireTimeout  : 10000,
+  host: "localhost",
+  user: "root",
+  password: "qwerty",
   database: "barangayaguho_24",
 });*/
 
@@ -203,7 +198,7 @@ app.get("/checkadmindocs/:status?/:user?", (req, res) => {
 
 app.get("/checkaccounts/:user?", (req, res) => {
   if (!req.params.user){
-    const q = "SELECT userid, firstname, middlename, lastname, username, privilege FROM accounts WHERE username != 'mainadmin'";
+    const q = "SELECT userid, firstname, middlename, lastname, username, privilege FROM accounts WHERE privilege != 'MainAdmin'";
     db.query(q, (err, data) => {
       if (err) {
         console.log(err);
