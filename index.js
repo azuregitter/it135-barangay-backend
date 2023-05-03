@@ -79,8 +79,7 @@ app.get("/officials", (req, res) => {
 });
 
 app.post("/updatepunongimg", (req, res) => {
-  console.log(req.body.img)
-  let q = "UPDATE Officials set `PunongIMG`= ? where OfficialID = 1;";
+  let q = "UPDATE Officials set `PunongIMG`= ? where OfficialID = 1";
   db.query(q,
       [req.body.img], (err, data) => {
         if (err) {
