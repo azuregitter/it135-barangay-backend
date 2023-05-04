@@ -10,8 +10,8 @@ const db = mysql.createPool({
   connectionLimit : 10,
   acquireTimeout  : 10000,
   host: "db4free.net",
-  user: "barangayaguho_28",
-  password: "barangayaguho_30",
+  user: "aguhouser",
+  password: "aguhobarangay24",
   database: "barangayaguho_24",
 });
 
