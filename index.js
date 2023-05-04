@@ -12,7 +12,7 @@ const db = mysql.createPool({
   host: "db4free.net",
   user: "aguhouser",
   password: "aguhobarangay24",
-  database: "barangayaguho_24",
+  database: "aguhobarangay",
 });
 
 /*const db = mysql.createPool({
